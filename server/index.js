@@ -45,7 +45,7 @@ app.post("/api/question", async (req, res) => {
         // Extract the question text from the API response, trim it, and provide a default question if the response is empty
         const question = (response.text || "").trim() || "Tell me about yourself.";
         res.json({ question });
-        
+
     // Log any errors that occur during the question generation process and send a 500 status code with an error message back to the client
     } catch (err) {
         console.error(err);
@@ -128,16 +128,16 @@ app.post("/api/analyze", async (req, res) => {
         // Call the OpenAI API to create a response based on the evaluation prompt and validate the output against the defined schema
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
-            contents: prompt,
+            contents: evalPrompt,
             config: {
                 responseMimeType: "application/json",
-                responseJsonSchema,
+                responseJsonSchema: schema,
             },
         });
 
 
         // Parse the feedback from the API response and send it back to the client as a JSON response
-        const feedback = JSON.parse(resp.output_text);
+        const feedback = JSON.parse(response.text);
         res.json(feedback);
 
         // Throw an error if the question exceeds 500 characters or the transcript exceeds 2000 characters
