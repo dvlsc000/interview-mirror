@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 
 // Initialize the GoogleGenAI client with the API key from environment variables
-const ai = new GoogleGenAI({});
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Define a simple health check endpoint
 app.get("/api/health", (req, res) => {
@@ -25,31 +25,28 @@ app.get("/api/health", (req, res) => {
 
 app.post("/api/question", async (req, res) => {
     try {
-        // Extract role and difficulty from the request body
+        // Extract role and difficulty from the request body, providing default values if they are not present
         const { role = "frontend", difficulty = "medium" } = req.body || {};
 
-        // Create a prompt for the OpenAI API to generate an interview question
+        // Create a prompt for the OpenAI API to generate an interview question based on the specified role and difficulty
         const prompt = `
-                    Generate ONE interview question.
-                    Role: ${role}
-                    Difficulty: ${difficulty}
-                    Return only the question text, no numbering, no quotes.
-                    `.trim();
+                        Generate ONE interview question.
+                        Role: ${role}
+                        Difficulty: ${difficulty}
+                        Return only the question text, no numbering, no quotes.
+                        `.trim();
 
-        // Call the OpenAI API to create a response based on the prompt
+        // Call the OpenAI API to generate a question based on the prompt and send it back to the client as a JSON response
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
             contents: prompt,
         });
 
-
-        // Extract the question text from the API response and trim any whitespace
-        const question = resp.output.text.trim() || "Tell me about yourself.";
-
-        // Send the generated question back to the client as a JSON response
+        // Extract the question text from the API response, trim it, and provide a default question if the response is empty
+        const question = (response.text || "").trim() || "Tell me about yourself.";
         res.json({ question });
-
-        // Handle any errors that occur during the API call or response processing
+        
+    // Log any errors that occur during the question generation process and send a 500 status code with an error message back to the client
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to generate question." });
