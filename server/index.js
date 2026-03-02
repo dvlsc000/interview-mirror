@@ -111,6 +111,24 @@ app.post("/api/analyze", async (req, res) => {
             required: ["overallScore", "subscores", "star", "strengths", "improvements", "rewrite", "followUps", "flags"]
         };
 
+        // Create a prompt for the OpenAI API to evaluate the interview answer based on the provided question and transcript
+        const evalPrompt = `
+                        You are an interview coach. Evaluate the answer and return strict JSON that matches the provided schema.
+
+                        Role: ${role || "unknown"}
+                        Difficulty: ${difficulty || "unknown"}
+                        Question: ${question}
+
+                        Answer transcript:
+                        ${transcript}
+
+                        Scoring rules:
+                        - Be honest but constructive.
+                        - Penalize rambling and low specificity.
+                        - For behavioral answers, check STAR (Situation, Task, Action, Result). If missing parts, list them.
+                        - fillerWords: only include obvious fillers that appear in the text (e.g., "um", "like", "you know"). If none, return [].
+                        `.trim();
+
     // Throw an error if the question exceeds 500 characters or the transcript exceeds 2000 characters
     } catch (err) {
         console.error(err);
