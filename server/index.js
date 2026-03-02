@@ -41,7 +41,7 @@ app.post("/api/question", async (req, res) => {
         // Call the OpenAI API to create a response based on the prompt
         const resp = await openai.responses.create({
             model: "gpt-4.1-mini",
-            input: promt,
+            input: prompt,
         });
 
         // Extract the question text from the API response and trim any whitespace
