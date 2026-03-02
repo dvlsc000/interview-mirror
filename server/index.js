@@ -129,14 +129,30 @@ app.post("/api/analyze", async (req, res) => {
                         - fillerWords: only include obvious fillers that appear in the text (e.g., "um", "like", "you know"). If none, return [].
                         `.trim();
 
-    // Throw an error if the question exceeds 500 characters or the transcript exceeds 2000 characters
+        // Call the OpenAI API to create a response based on the evaluation prompt and validate the output against the defined schema
+        const resp = await openai.responses.create({
+            model: "gpt-4.1-mini",
+            input: evalPrompt,
+            text: {
+                format: {
+                    type: "json_schema",
+                    name: "interview_feedback",
+                    schema
+                }
+            }
+        });
+
+        // Parse the feedback from the API response and send it back to the client as a JSON response
+        const feedback = JSON.parse(resp.output_text);
+        res.json(feedback);
+
+        // Throw an error if the question exceeds 500 characters or the transcript exceeds 2000 characters
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to analyze answer." });
     }
 });
 
-// Start the server on port 3001
-app.listen(3001, () => {
-    console.log("Server is running on port 3001");
-});
+// Start the Express server on the specified port and log a message to the console
+const port = process.env.PORT || 3001;
+app.listen(port, () => console.log(`API listening on http://localhost:${port}`));
