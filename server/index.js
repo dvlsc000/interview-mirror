@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -15,10 +15,8 @@ app.use(cors());
 // Use middleware to parse JSON bodies with a size limit of 2mb
 app.use(express.json({ limit: "2mb" }));
 
-// Import the OpenAI client from the openai package
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize the GoogleGenAI client with the API key from environment variables
+const ai = new GoogleGenAI({});
 
 // Define a simple health check endpoint
 app.get("/api/health", (req, res) => {
@@ -39,10 +37,11 @@ app.post("/api/question", async (req, res) => {
                     `.trim();
 
         // Call the OpenAI API to create a response based on the prompt
-        const resp = await openai.responses.create({
-            model: "gpt-4.1-mini",
-            input: prompt,
+        const response = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: prompt,
         });
+
 
         // Extract the question text from the API response and trim any whitespace
         const question = resp.output.text.trim() || "Tell me about yourself.";
@@ -130,17 +129,15 @@ app.post("/api/analyze", async (req, res) => {
                         `.trim();
 
         // Call the OpenAI API to create a response based on the evaluation prompt and validate the output against the defined schema
-        const resp = await openai.responses.create({
-            model: "gpt-4.1-mini",
-            input: evalPrompt,
-            text: {
-                format: {
-                    type: "json_schema",
-                    name: "interview_feedback",
-                    schema
-                }
-            }
+        const response = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseJsonSchema,
+            },
         });
+
 
         // Parse the feedback from the API response and send it back to the client as a JSON response
         const feedback = JSON.parse(resp.output_text);
