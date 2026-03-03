@@ -1,32 +1,67 @@
-# 🎯 Interview Mirror
+# 🎯 Interview Mirror  
+### AI-Powered Interview Intelligence Platform
 
-> AI-powered mock interview coach that analyzes your answers in real time and delivers structured, actionable feedback.
+> A production-deployed full-stack AI system that simulates real interviews, evaluates candidate responses, and delivers structured, deterministic performance feedback using large language models.
 
-🌍 Live Demo: https://interview-mirror-roan.vercel.app  
-⚙️ Backend API: https://interview-mirror.onrender.com  
+🌍 **Live App:** https://interview-mirror-roan.vercel.app  
+⚙️ **Backend API:** https://interview-mirror.onrender.com  
 
 ---
 
-## 🚀 What This Is
+# 🧠 The Problem
 
-Interview Mirror is a full-stack AI-powered mock interview platform designed to simulate real technical and behavioral interviews.
+Interview preparation today is shallow.
+
+Most tools:
+- Generate generic questions
+- Provide vague feedback
+- Ignore communication structure
+- Do not simulate real interviewer evaluation
+- Do not score answers with objective criteria
+
+Real interviews test:
+- Structure
+- Clarity
+- Depth
+- Relevance
+- Communication discipline
+- STAR method usage
+- Conciseness
+
+Interview Mirror was built to simulate that rigor.
+
+---
+
+# 🚀 What This System Does
+
+Interview Mirror functions as an AI-powered interview evaluator.
 
 It:
 
-- Generates role-specific interview questions
-- Records or accepts typed answers
-- Analyzes responses using Gemini AI
-- Scores clarity, structure, depth, and conciseness
-- Detects STAR method usage
-- Flags rambling & filler words
-- Suggests improvements and rewrites
+- 🎯 Generates role- and difficulty-specific interview questions  
+- 🎙 Accepts typed or voice-recorded answers  
+- 🧠 Uses LLM evaluation with structured schema enforcement  
+- 📊 Scores clarity, structure, relevance, conciseness, depth  
+- ⭐ Detects STAR method usage for behavioral answers  
+- 🚨 Flags rambling and filler words  
+- ✍️ Rewrites answers into stronger versions  
+- 🔁 Suggests realistic follow-up questions  
 
-This is a production-deployed AI application — not a tutorial project.
+This is not a demo project.
+
+It is a deployed AI evaluation system with production architecture.
 
 ---
 
-## 🏗 Architecture
+# 🏗 System Architecture
 
-Client (React + Vite) → Vercel  
-Server (Express API) → Render  
-AI Engine → Google Gemini API  
+## High-Level Architecture
+
+```mermaid
+flowchart TD
+    A[User Browser] --> B[React Frontend - Vercel]
+    B --> C[Express API - Render]
+    C --> D[Gemini AI Model]
+    D --> C
+    C --> B
+    B --> A
