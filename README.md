@@ -67,21 +67,27 @@ flowchart TD
     B --> A
 ```
 
-```markdown
+## 🔄 System Request Flow
+
 ```mermaid
 flowchart LR
-    subgraph Question Generation
-        U1[User] -->|New Question| FE1[Frontend]
-        FE1 -->|POST /api/question| BE1[Backend]
-        BE1 -->|Generate| AI1[Gemini]
-        AI1 --> BE1
-        BE1 --> FE1
-    end
 
-    subgraph Answer Evaluation
-        U2[User] -->|Submit Answer| FE2[Frontend]
-        FE2 -->|POST /api/analyze| BE2[Backend]
-        BE2 -->|Evaluate| AI2[Gemini]
-        AI2 --> BE2
-        BE2 --> FE2
-    end
+    %% Nodes
+    User((User))
+    Frontend[Frontend<br/>React + Vite]
+    Backend[Backend<br/>Express API]
+    Gemini[Gemini AI Model]
+
+    %% Question Flow
+    User -->|Request New Question| Frontend
+    Frontend -->|POST /api/question| Backend
+    Backend -->|Generate Question| Gemini
+    Gemini -->|Question Text| Backend
+    Backend -->|JSON Response| Frontend
+
+    %% Answer Flow
+    User -->|Submit Answer| Frontend
+    Frontend -->|POST /api/analyze| Backend
+    Backend -->|Evaluate Transcript| Gemini
+    Gemini -->|Structured JSON Feedback| Backend
+    Backend -->|Feedback Response| Frontend
