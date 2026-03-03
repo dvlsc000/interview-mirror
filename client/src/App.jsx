@@ -1,9 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import SkillRadar from "./components/SkillRadar";
 import "./index.css";
 
+const TRACKS_BY_ROLE = {
+  frontend: ["general", "react", "ionic", "angular", "vue", "svelte"],
+  backend: ["general", "node", "python", "java", "c", "csharp", "go", "php"],
+  behavioral: ["general", "leadership", "conflict", "teamwork", "ownership"],
+};
+
 export default function App() {
   const [role, setRole] = useState("frontend");
+  const [track, setTrack] = useState("general"); // NEW
   const [difficulty, setDifficulty] = useState("medium");
   const [question, setQuestion] = useState("");
   const [transcript, setTranscript] = useState("");
@@ -26,6 +33,18 @@ export default function App() {
       setSpeechSupported(false);
     }
   }, []);
+
+  // NEW: Track options based on selected role
+  const trackOptions = useMemo(() => {
+    return TRACKS_BY_ROLE[role] ?? ["general"];
+  }, [role]);
+
+  // NEW: Ensure track is valid when role changes
+  useEffect(() => {
+    if (!trackOptions.includes(track)) {
+      setTrack(trackOptions[0] || "general");
+    }
+  }, [trackOptions, track]);
 
   function startListening() {
     if (!SpeechRecognition) {
@@ -75,7 +94,6 @@ export default function App() {
     else startListening();
   }
 
-
   async function getQuestion() {
     setLoading(true);
     setFeedback(null);
@@ -83,7 +101,8 @@ export default function App() {
       const res = await fetch("/api/question", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, difficulty }),
+        // role + difficulty are unchanged; track is added (should not break functionality if backend ignores it)
+        body: JSON.stringify({ role, difficulty, track }),
       });
       const data = await res.json();
       setQuestion(data.question);
@@ -98,7 +117,8 @@ export default function App() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, difficulty, question, transcript }),
+        // role + difficulty are unchanged; track is added (should not break functionality if backend ignores it)
+        body: JSON.stringify({ role, difficulty, track, question, transcript }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -112,12 +132,12 @@ export default function App() {
 
   const radarData = feedback
     ? [
-      { metric: "Clarity", value: feedback.subscores.clarity },
-      { metric: "Structure", value: feedback.subscores.structure },
-      { metric: "Relevance", value: feedback.subscores.relevance },
-      { metric: "Concise", value: feedback.subscores.conciseness },
-      { metric: "Depth", value: feedback.subscores.depth },
-    ]
+        { metric: "Clarity", value: feedback.subscores.clarity },
+        { metric: "Structure", value: feedback.subscores.structure },
+        { metric: "Relevance", value: feedback.subscores.relevance },
+        { metric: "Concise", value: feedback.subscores.conciseness },
+        { metric: "Depth", value: feedback.subscores.depth },
+      ]
     : [];
 
   return (
@@ -138,9 +158,24 @@ export default function App() {
             </select>
           </label>
 
+          {/* NEW: Track dropdown */}
+          <label>
+            Track
+            <select value={track} onChange={(e) => setTrack(e.target.value)}>
+              {trackOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <label>
             Difficulty
-            <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+            <select
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+            >
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
@@ -154,7 +189,9 @@ export default function App() {
 
         <div className="questionBox">
           <div className="label">Question</div>
-          <div className="question">{question || "Click “New question” to start."}</div>
+          <div className="question">
+            {question || "Click “New question” to start."}
+          </div>
         </div>
 
         <div className="answerBox">
@@ -179,7 +216,9 @@ export default function App() {
             </button>
 
             {!speechSupported && (
-              <span className="hint">Speech-to-text not supported in this browser.</span>
+              <span className="hint">
+                Speech-to-text not supported in this browser.
+              </span>
             )}
           </div>
 
@@ -190,7 +229,10 @@ export default function App() {
             rows={8}
           />
 
-          <button onClick={analyze} disabled={loading || !question || !transcript.trim()}>
+          <button
+            onClick={analyze}
+            disabled={loading || !question || !transcript.trim()}
+          >
             {loading ? "Analyzing..." : "Analyze answer"}
           </button>
         </div>
@@ -203,7 +245,9 @@ export default function App() {
             <div className="scoreLabel">Overall score</div>
             <div className="small">
               STAR detected: <b>{String(feedback.star.detected)}</b>
-              {feedback.star.missing?.length ? ` (missing: ${feedback.star.missing.join(", ")})` : ""}
+              {feedback.star.missing?.length
+                ? ` (missing: ${feedback.star.missing.join(", ")})`
+                : ""}
             </div>
             <div className="small">
               Rambling: <b>{String(feedback.flags.rambling)}</b>
@@ -253,4 +297,3 @@ export default function App() {
     </div>
   );
 }
-

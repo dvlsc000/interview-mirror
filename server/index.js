@@ -27,12 +27,13 @@ app.get("/api/health", (req, res) => {
 app.post("/api/question", async (req, res) => {
     try {
         // Extract role and difficulty from the request body, providing default values if they are not present
-        const { role = "frontend", difficulty = "medium" } = req.body || {};
+        const { role = "frontend", difficulty = "medium", track = "general" } = req.body || {};
 
         // Create a prompt for the OpenAI API to generate an interview question based on the specified role and difficulty
         const prompt = `
                         Generate ONE interview question.
                         Role: ${role}
+                        Track: ${track}
                         Difficulty: ${difficulty}
                         Return only the question text, no numbering, no quotes.
                         `.trim();
@@ -57,7 +58,7 @@ app.post("/api/question", async (req, res) => {
 app.post("/api/analyze", async (req, res) => {
     try {
         // Extract role, difficulty, question, and transcript from the request body
-        const { role, difficulty, question, transcript } = req.body || {};
+        const { role, difficulty, question, transcript, track = "general" } = req.body || {};
 
         // Validate that both question and transcript are provided in the request
         if (!question || !transcript) {
@@ -69,6 +70,7 @@ app.post("/api/analyze", async (req, res) => {
                         You are an interview coach. Evaluate the answer and return strict JSON that matches the provided schema.
 
                         Role: ${role || "unknown"}
+                        Track: ${track}
                         Difficulty: ${difficulty || "unknown"}
                         Question: ${question}
 
