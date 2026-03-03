@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
+import { analysisSchema } from './schemas/analysisSchema.js';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -46,7 +47,7 @@ app.post("/api/question", async (req, res) => {
         const question = (response.text || "").trim() || "Tell me about yourself.";
         res.json({ question });
 
-    // Log any errors that occur during the question generation process and send a 500 status code with an error message back to the client
+        // Log any errors that occur during the question generation process and send a 500 status code with an error message back to the client
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to generate question." });
@@ -62,50 +63,6 @@ app.post("/api/analyze", async (req, res) => {
         if (!question || !transcript) {
             return res.status(400).json({ error: "Missing question or transcript." });
         }
-
-        // Schema for validating the structure of the analysis result
-        const schema = {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-                overallScore: { type: "integer", minimum: 0, maximum: 100 },
-                subscores: {
-                    type: "object",
-                    additionalProperties: false,
-                    properties: {
-                        clarity: { type: "integer", minimum: 0, maximum: 10 },
-                        structure: { type: "integer", minimum: 0, maximum: 10 },
-                        relevance: { type: "integer", minimum: 0, maximum: 10 },
-                        conciseness: { type: "integer", minimum: 0, maximum: 10 },
-                        depth: { type: "integer", minimum: 0, maximum: 10 }
-                    },
-                    required: ["clarity", "structure", "relevance", "conciseness", "depth"]
-                },
-                star: {
-                    type: "object",
-                    additionalProperties: false,
-                    properties: {
-                        detected: { type: "boolean" },
-                        missing: { type: "array", items: { type: "string" } }
-                    },
-                    required: ["detected", "missing"]
-                },
-                strengths: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 5 },
-                improvements: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 5 },
-                rewrite: { type: "string" },
-                followUps: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 4 },
-                flags: {
-                    type: "object",
-                    additionalProperties: false,
-                    properties: {
-                        rambling: { type: "boolean" },
-                        fillerWords: { type: "array", items: { type: "string" } }
-                    },
-                    required: ["rambling", "fillerWords"]
-                }
-            },
-            required: ["overallScore", "subscores", "star", "strengths", "improvements", "rewrite", "followUps", "flags"]
-        };
 
         // Create a prompt for the OpenAI API to evaluate the interview answer based on the provided question and transcript
         const evalPrompt = `
@@ -131,7 +88,7 @@ app.post("/api/analyze", async (req, res) => {
             contents: evalPrompt,
             config: {
                 responseMimeType: "application/json",
-                responseJsonSchema: schema,
+                responseJsonSchema: analysisSchema,
             },
         });
 
