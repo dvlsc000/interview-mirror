@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 import "./index.css";
 
@@ -19,12 +19,13 @@ export default function App() {
     typeof window !== "undefined" &&
     (window.SpeechRecognition || window.webkitSpeechRecognition);
 
-  const recognitionRef = useState(null)[0]; // simple stable ref alternative
+  const recognitionRef = useRef(null); // simple stable ref alternative
 
-  if (typeof window !== "undefined" && !SpeechRecognition && speechSupported) {
-    // only set once-ish (safe enough for MVP)
-    setTimeout(() => setSpeechSupported(false), 0);
-  }
+  useEffect(() => {
+    if (typeof window !== "undefined" && !SpeechRecognition) {
+      setSpeechSupported(false);
+    }
+  }, []);
 
   function startListening() {
     if (!SpeechRecognition) {
@@ -33,22 +34,18 @@ export default function App() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = "en-US"; // change if you want
+    recognition.lang = "en-US";
     recognition.interimResults = true;
     recognition.continuous = true;
 
     recognition.onresult = (event) => {
-      let finalText = "";
-      let interimText = "";
+      let text = "";
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const text = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += text + " ";
-        else interimText += text;
+      for (let i = 0; i < event.results.length; i++) {
+        text += event.results[i][0].transcript + " ";
       }
 
-      // Append final text, show interim live
-      setTranscript((prev) => (prev + finalText).trim() + (interimText ? " " + interimText : ""));
+      setTranscript(text.trim());
     };
 
     recognition.onerror = (e) => {
@@ -60,8 +57,8 @@ export default function App() {
       setListening(false);
     };
 
-    recognition.start();
     recognitionRef.current = recognition;
+    recognition.start();
     setListening(true);
   }
 
@@ -162,12 +159,37 @@ export default function App() {
 
         <div className="answerBox">
           <div className="label">Your answer</div>
+
+          <div className="answerControls">
+            <button
+              type="button"
+              onClick={toggleListening}
+              disabled={loading || !question || !speechSupported}
+              className={listening ? "danger" : ""}
+            >
+              {listening ? "Stop recording" : "🎤 Record answer"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTranscript("")}
+              disabled={loading || !transcript}
+            >
+              Clear
+            </button>
+
+            {!speechSupported && (
+              <span className="hint">Speech-to-text not supported in this browser.</span>
+            )}
+          </div>
+
           <textarea
             value={transcript}
             onChange={(e) => setTranscript(e.target.value)}
-            placeholder="Type your answer here…"
+            placeholder="Type your answer here… or use the mic."
             rows={8}
           />
+
           <button onClick={analyze} disabled={loading || !question || !transcript.trim()}>
             {loading ? "Analyzing..." : "Analyze answer"}
           </button>
@@ -236,3 +258,4 @@ export default function App() {
     </div>
   );
 }
+
