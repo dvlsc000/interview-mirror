@@ -67,20 +67,21 @@ flowchart TD
     B --> A
 ```
 
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant Backend
-    participant Gemini
+```markdown
+```mermaid
+flowchart LR
+    subgraph Question Generation
+        U1[User] -->|New Question| FE1[Frontend]
+        FE1 -->|POST /api/question| BE1[Backend]
+        BE1 -->|Generate| AI1[Gemini]
+        AI1 --> BE1
+        BE1 --> FE1
+    end
 
-    User->>Frontend: Request new question
-    Frontend->>Backend: POST /api/question
-    Backend->>Gemini: Generate question
-    Gemini-->>Backend: Question text
-    Backend-->>Frontend: JSON question
-
-    User->>Frontend: Submit answer
-    Frontend->>Backend: POST /api/analyze
-    Backend->>Gemini: Evaluate transcript
-    Gemini-->>Backend: Structured JSON feedback
-    Backend-->>Frontend: Feedback response
+    subgraph Answer Evaluation
+        U2[User] -->|Submit Answer| FE2[Frontend]
+        FE2 -->|POST /api/analyze| BE2[Backend]
+        BE2 -->|Evaluate| AI2[Gemini]
+        AI2 --> BE2
+        BE2 --> FE2
+    end
