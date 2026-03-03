@@ -10,6 +10,75 @@ export default function App() {
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // For voice input
+  const [listening, setListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(true);
+
+  // Create speech recognition once
+  const SpeechRecognition =
+    typeof window !== "undefined" &&
+    (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+  const recognitionRef = useState(null)[0]; // simple stable ref alternative
+
+  if (typeof window !== "undefined" && !SpeechRecognition && speechSupported) {
+    // only set once-ish (safe enough for MVP)
+    setTimeout(() => setSpeechSupported(false), 0);
+  }
+
+  function startListening() {
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US"; // change if you want
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    recognition.onresult = (event) => {
+      let finalText = "";
+      let interimText = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const text = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += text + " ";
+        else interimText += text;
+      }
+
+      // Append final text, show interim live
+      setTranscript((prev) => (prev + finalText).trim() + (interimText ? " " + interimText : ""));
+    };
+
+    recognition.onerror = (e) => {
+      console.error(e);
+      setListening(false);
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+    };
+
+    recognition.start();
+    recognitionRef.current = recognition;
+    setListening(true);
+  }
+
+  function stopListening() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setListening(false);
+  }
+
+  function toggleListening() {
+    if (listening) stopListening();
+    else startListening();
+  }
+
+
   async function getQuestion() {
     setLoading(true);
     setFeedback(null);
@@ -46,12 +115,12 @@ export default function App() {
 
   const radarData = feedback
     ? [
-        { metric: "Clarity", value: feedback.subscores.clarity },
-        { metric: "Structure", value: feedback.subscores.structure },
-        { metric: "Relevance", value: feedback.subscores.relevance },
-        { metric: "Concise", value: feedback.subscores.conciseness },
-        { metric: "Depth", value: feedback.subscores.depth },
-      ]
+      { metric: "Clarity", value: feedback.subscores.clarity },
+      { metric: "Structure", value: feedback.subscores.structure },
+      { metric: "Relevance", value: feedback.subscores.relevance },
+      { metric: "Concise", value: feedback.subscores.conciseness },
+      { metric: "Depth", value: feedback.subscores.depth },
+    ]
     : [];
 
   return (
