@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
+import SkillRadar from "./components/SkillRadar";
 import "./index.css";
 
 export default function App() {
@@ -215,12 +215,7 @@ export default function App() {
 
           <div className="chartCard">
             <h3>Skill breakdown</h3>
-            <RadarChart width={420} height={300} data={radarData}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="metric" />
-              <PolarRadiusAxis domain={[0, 10]} />
-              <Radar dataKey="value" />
-            </RadarChart>
+            <SkillRadar data={radarData} />
           </div>
 
           <div className="textCards">

@@ -259,6 +259,24 @@ button.danger {
   font-size: 13px;
 }
 
+.radarWrap {
+  margin-top: 10px;
+  height: 320px;
+}
+
+.chartCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.chartCard::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.16), transparent 60%);
+  pointer-events: none;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
   .results {
