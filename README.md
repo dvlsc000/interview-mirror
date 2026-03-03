@@ -65,3 +65,22 @@ flowchart TD
     D --> C
     C --> B
     B --> A
+```
+
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Gemini
+
+    User->>Frontend: Request new question
+    Frontend->>Backend: POST /api/question
+    Backend->>Gemini: Generate question
+    Gemini-->>Backend: Question text
+    Backend-->>Frontend: JSON question
+
+    User->>Frontend: Submit answer
+    Frontend->>Backend: POST /api/analyze
+    Backend->>Gemini: Evaluate transcript
+    Gemini-->>Backend: Structured JSON feedback
+    Backend-->>Frontend: Feedback response
