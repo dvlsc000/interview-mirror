@@ -11,7 +11,27 @@ dotenv.config();
 const app = express();
 
 // Use CORS middleware to allow cross-origin requests
-app.use(cors());
+// ✅ Updated: allow only your deployed frontend + localhost dev
+const allowedOrigins = [
+    "http://localhost:5173", // Vite dev
+    "http://localhost:3000", // CRA dev (if used)
+    "https://interview-mirror-phyaf0ppx-davids-projects-532bf175.vercel.app",
+];
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Allow requests with no origin (like curl/postman) and server-to-server
+            if (!origin) return callback(null, true);
+
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
+    })
+);
 
 // Use middleware to parse JSON bodies with a size limit of 2mb
 app.use(express.json({ limit: "2mb" }));
