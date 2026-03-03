@@ -20,6 +20,12 @@ export default function App() {
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // ✅ Backend base URL (set this in Vercel Environment Variables)
+  // Vite:
+  const API_URL = (import.meta?.env?.VITE_API_URL || "").replace(/\/$/, "");
+  // CRA (uncomment if you're using CRA instead of Vite):
+  // const API_URL = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+
   const trackOptions = useMemo(() => TRACKS_BY_ROLE[role] ?? ["general"], [role]);
 
   useEffect(() => {
@@ -31,35 +37,53 @@ export default function App() {
     lang: "en-US",
   });
 
+  function requireApiUrl() {
+    if (!API_URL) {
+      alert(
+        "Missing API URL.\n\nIf you are on Vite, add VITE_API_URL in Vercel env vars.\nExample: https://your-backend.onrender.com"
+      );
+      return false;
+    }
+    return true;
+  }
+
   async function getQuestion() {
+    if (!requireApiUrl()) return;
+
     setLoading(true);
     setFeedback(null);
     try {
-      const res = await fetch("/api/question", {
+      const res = await fetch(`${API_URL}/api/question`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, difficulty, track }),
       });
+
       const data = await res.json();
       setQuestion(data.question);
+    } catch (e) {
+      alert(e.message || "Failed to get question.");
     } finally {
       setLoading(false);
     }
   }
 
   async function analyze() {
+    if (!requireApiUrl()) return;
+
     setLoading(true);
     try {
-      const res = await fetch("/api/analyze", {
+      const res = await fetch(`${API_URL}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, difficulty, track, question, transcript }),
       });
+
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setFeedback(data);
     } catch (e) {
-      alert(e.message);
+      alert(e.message || "Failed to analyze answer.");
     } finally {
       setLoading(false);
     }
