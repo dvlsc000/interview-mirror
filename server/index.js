@@ -11,11 +11,12 @@ dotenv.config();
 const app = express();
 
 // Use CORS middleware to allow cross-origin requests
-// ✅ Updated: allow only your deployed frontend + localhost dev
+// allow only your deployed frontend + localhost dev
 const allowedOrigins = [
-    "http://localhost:5173", // Vite dev
-    "http://localhost:3000", // CRA dev (if used)
-    "https://interview-mirror-phyaf0ppx-davids-projects-532bf175.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://interview-mirror-roan.vercel.app",
+  "https://interview-mirror-phyaf0ppx-davids-projects-532bf175.vercel.app",
 ];
 
 app.use(
